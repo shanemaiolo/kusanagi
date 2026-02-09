@@ -58,7 +58,7 @@ bun run package    # Compile + package as .vsix
 ln -s "$(pwd)" ~/.vscode/extensions/kusanagi
 ```
 
-Reload VS Code after recompiling to pick up changes.
+Restart VS Code (or run **Developer: Reload Window**) to detect the extension. After that, recompile and reload to pick up changes.
 
 **Install as .vsix** — Package and install a standalone build:
 
