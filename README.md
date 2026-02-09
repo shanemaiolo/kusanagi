@@ -89,7 +89,18 @@ Slash commands accept extra instructions: `/refactor extract validation into a h
 bun run compile    # Build the extension
 bun run watch      # Rebuild on file changes
 bun run package    # Compile + package as .vsix
+bun test           # Run the unit test suite
 ```
+
+### Unit tests
+
+Run the test suite with:
+
+```bash
+bun test
+```
+
+Tests cover comment parsing, slash commands, code fence stripping, block detection, prompt building, and insertion tracking. The `vscode` module is mocked via a Bun preload configured in `bunfig.toml`.
 
 ### Testing & installing
 
@@ -98,7 +109,7 @@ bun run package    # Compile + package as .vsix
 **Symlink** — Link the project into your extensions directory so VS Code loads it directly:
 
 ```bash
-ln -s "$(pwd)" ~/.vscode/extensions/shanemaiolo.kusanagi-0.4.2
+ln -s "$(pwd)" ~/.vscode/extensions/shanemaiolo.kusanagi-0.5.0
 ```
 
 Restart VS Code (or run **Developer: Reload Window**) to detect the extension. After that, recompile and reload to pick up changes.
@@ -107,7 +118,7 @@ Restart VS Code (or run **Developer: Reload Window**) to detect the extension. A
 
 ```bash
 bun run package
-code --install-extension kusanagi-0.4.2.vsix
+code --install-extension kusanagi-0.5.0.vsix
 ```
 
 You'll need to re-package and re-install to pick up changes.
