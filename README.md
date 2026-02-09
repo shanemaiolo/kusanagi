@@ -2,13 +2,17 @@
 
 Inline AI prompting for VS Code.
 
-Kusanagi uses the Claude CLI to generate and modify code directly in your editor. Select code (or place your cursor in a block), trigger the prompt, and Claude streams changes inline — no copy-pasting, no side panels.
+Kusanagi uses AI CLI tools to generate and modify code directly in your editor. Select code (or place your cursor in a block), trigger the prompt, and the AI streams changes inline — no copy-pasting, no side panels.
+
+Supports multiple backends — currently **Claude Code** and **OpenCode**, with more easily added.
 
 ## Prerequisites
 
 - **VS Code** 1.85.0+
 - **Bun** — [bun.sh](https://bun.sh)
-- **Claude CLI** — `npm install -g @anthropic-ai/claude-code`
+- **One of the supported AI CLIs:**
+  - **Claude Code** (default) — `npm install -g @anthropic-ai/claude-code`
+  - **OpenCode** — `go install github.com/opencode-ai/opencode@latest`
 
 ## Installation
 
@@ -24,10 +28,21 @@ bun run compile
 With code selected or your cursor inside a block, press the keybinding to open the prompt. You can:
 
 - **Pick a quick action** — Document, Refactor, Explain, or Fix
-- **Type a custom prompt** — free-text instructions for Claude
+- **Type a custom prompt** — free-text instructions for the AI
 - **Use a slash command** — e.g. `/refactor extract helper`, `/fix handle null case`
 
 When no code is selected, Kusanagi uses the enclosing block as context. On an empty line, it inserts the result at your cursor.
+
+### Choosing a provider
+
+Open **Settings** and search for `kusanagi.provider`. Pick from the dropdown:
+
+| Provider   | CLI command | Install                                              |
+|------------|-------------|------------------------------------------------------|
+| `claude`   | `claude`    | `npm install -g @anthropic-ai/claude-code`           |
+| `opencode` | `opencode`  | `go install github.com/opencode-ai/opencode@latest`  |
+
+The provider can be switched at runtime — no reload required. The status bar reflects the active provider.
 
 ### Slash commands
 
@@ -55,7 +70,7 @@ bun run package    # Compile + package as .vsix
 **Symlink** — Link the project into your extensions directory so VS Code loads it directly:
 
 ```bash
-ln -s "$(pwd)" ~/.vscode/extensions/shanemaiolo.kusanagi-0.2.0
+ln -s "$(pwd)" ~/.vscode/extensions/shanemaiolo.kusanagi-0.3.0
 ```
 
 Restart VS Code (or run **Developer: Reload Window**) to detect the extension. After that, recompile and reload to pick up changes.
@@ -64,7 +79,7 @@ Restart VS Code (or run **Developer: Reload Window**) to detect the extension. A
 
 ```bash
 bun run package
-code --install-extension kusanagi-0.2.0.vsix
+code --install-extension kusanagi-0.3.0.vsix
 ```
 
 You'll need to re-package and re-install to pick up changes.
