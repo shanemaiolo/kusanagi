@@ -25,9 +25,12 @@ export const opencodeProvider: Provider = {
     return new Promise((resolve, reject) => {
       const fullPrompt = buildPrompt(params);
 
-      const proc = spawn("opencode", ["run", fullPrompt], {
-        stdio: ["ignore", "pipe", "pipe"],
+      const proc = spawn("opencode", ["run"], {
+        stdio: ["pipe", "pipe", "pipe"],
       });
+
+      proc.stdin.write(fullPrompt);
+      proc.stdin.end();
 
       let stdout = "";
       let stderr = "";
