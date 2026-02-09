@@ -9,10 +9,10 @@ function buildPrompt(params: ProviderRunParams): string {
     "Return ONLY valid code. No explanations, no markdown fences, no conversation.\n\n" +
     `Language: ${params.language}\n\n${params.prompt}`;
   if (params.fileContent) {
-    fullPrompt += `\n\nIMPORTANT: Your output will REPLACE the focused code. Return ONLY the modified version of the focus code — do not include any surrounding code. If no changes are needed, return the original code exactly as-is. Never return explanations or prose — always return valid code.`;
     fullPrompt += `\n\nFull file context:\n\`\`\`${params.language}\n${params.fileContent}\n\`\`\``;
   }
   if (params.context && params.contextType) {
+    fullPrompt += `\n\nIMPORTANT: Your output will REPLACE the focused code. Return ONLY the modified version of the focus code — do not include any surrounding code. If no changes are needed, return the original code exactly as-is. Never return explanations or prose — always return valid code.`;
     fullPrompt += `\n\nFocus (${params.contextType}):\n\`\`\`${params.language}\n${params.context}\n\`\`\``;
   }
   return fullPrompt;

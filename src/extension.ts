@@ -271,6 +271,7 @@ async function handlePromptCommand(): Promise<void> {
   const editorContext = getEditorContext(editor);
 
   let prompt: string;
+  let commentLabel: string = "";
   let useContextRange = false;
 
   if (editorContext) {
@@ -310,6 +311,7 @@ async function handlePromptCommand(): Promise<void> {
 
     if (result.type === "pick") {
       prompt = result.action.prompt + REPLACE_SUFFIX;
+      commentLabel = "/" + result.action.slash;
       useContextRange = true;
     } else {
       const slashCmd = parseSlashCommand(result.text);
@@ -318,9 +320,11 @@ async function handlePromptCommand(): Promise<void> {
           ? `${slashCmd.action.prompt}\n\nAdditional instructions: ${slashCmd.extra}`
           : slashCmd.action.prompt;
         prompt = basePrompt + REPLACE_SUFFIX;
+        commentLabel = "/" + slashCmd.action.slash + (slashCmd.extra ? " " + slashCmd.extra : "");
         useContextRange = true;
       } else {
         prompt = result.text;
+        commentLabel = result.text;
       }
     }
   } else {
@@ -337,8 +341,10 @@ async function handlePromptCommand(): Promise<void> {
       prompt = slashCmd.extra
         ? `${slashCmd.action.prompt}\n\nAdditional instructions: ${slashCmd.extra}`
         : slashCmd.action.prompt;
+      commentLabel = "/" + slashCmd.action.slash + (slashCmd.extra ? " " + slashCmd.extra : "");
     } else {
       prompt = input;
+      commentLabel = input;
     }
   }
 
@@ -355,7 +361,7 @@ async function handlePromptCommand(): Promise<void> {
   } else if (isEmptyLine) {
     // Insert a comment placeholder and track the full line.
     // Use WorkspaceEdit since editor.edit() can fail after showInputBox steals focus.
-    const comment = makeComment(editor.document.languageId, `${currentProvider.id}: ${prompt}`);
+    const comment = makeComment(editor.document.languageId, `Kusanagi ${commentLabel}`);
     const wsEdit = new vscode.WorkspaceEdit();
     wsEdit.insert(editor.document.uri, selection.active, comment);
     await vscode.workspace.applyEdit(wsEdit);

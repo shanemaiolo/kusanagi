@@ -2,7 +2,7 @@
   "name": "kusanagi",
   "displayName": "Kusanagi",
   "description": "Inline AI prompting for VS Code",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "license": "Apache-2.0",
   "publisher": "shanemaiolo",
   "author": {
