@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { getProvider, type Provider } from "./provider";
 import { InsertionTracker } from "./insertion-tracker";
 
-const COMMENT_SYNTAX: Record<string, [string, string]> = {
+export const COMMENT_SYNTAX: Record<string, [string, string]> = {
   javascript: ["// ", ""],
   typescript: ["// ", ""],
   javascriptreact: ["// ", ""],
@@ -43,12 +43,12 @@ const COMMENT_SYNTAX: Record<string, [string, string]> = {
   vim: ['" ', ""],
 };
 
-function makeComment(language: string, text: string): string {
+export function makeComment(language: string, text: string): string {
   const [prefix, suffix] = COMMENT_SYNTAX[language] ?? ["// ", ""];
   return `${prefix}${text}${suffix}`;
 }
 
-function parseKusanagiComment(language: string, lineText: string): string | null {
+export function parseKusanagiComment(language: string, lineText: string): string | null {
   const [prefix, suffix] = COMMENT_SYNTAX[language] ?? ["// ", ""];
   const trimmed = lineText.trim();
   if (!trimmed.startsWith(prefix.trimEnd())) return null;
@@ -104,7 +104,7 @@ const QUICK_ACTIONS: QuickAction[] = [
  * @returns An object containing the matched {@link QuickAction} and any extra text after the command,
  *          or `null` if the input does not match a known slash command.
  */
-function parseSlashCommand(input: string): { action: QuickAction; extra: string } | null {
+export function parseSlashCommand(input: string): { action: QuickAction; extra: string } | null {
   const trimmed = input.trim();
   if (!trimmed.startsWith("/")) return null;
   for (const action of QUICK_ACTIONS) {
@@ -127,7 +127,7 @@ function parseSlashCommand(input: string): { action: QuickAction; extra: string 
  * @param position - The cursor position to find the enclosing block for.
  * @returns An object containing the block text and its range, or `null` if no enclosing block is found.
  */
-function getEnclosingBlock(
+export function getEnclosingBlock(
   document: vscode.TextDocument,
   position: vscode.Position
 ): { text: string; range: vscode.Range } | null {

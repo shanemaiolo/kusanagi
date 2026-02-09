@@ -2,7 +2,7 @@ import { spawn } from "child_process";
 import type { Provider, ProviderResult, ProviderRunParams } from "../provider";
 import { stripCodeFences } from "../utils";
 
-function buildPrompt(params: ProviderRunParams): string {
+export function buildPrompt(params: ProviderRunParams): string {
   let fullPrompt =
     "You are a code generation tool embedded in a text editor. " +
     "Your output will be inserted directly into the source file. " +
