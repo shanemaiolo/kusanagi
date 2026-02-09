@@ -281,7 +281,7 @@ async function handlePromptCommand(): Promise<void> {
 
   const selection = editor.selection;
   const hasSelection = !selection.isEmpty;
-  const editorContext = getEditorContext(editor);
+  let editorContext = getEditorContext(editor);
 
   let prompt: string;
   let commentLabel: string = "";
@@ -298,8 +298,27 @@ async function handlePromptCommand(): Promise<void> {
       const basePrompt = slashCmd.extra
         ? `${slashCmd.action.prompt}\n\nAdditional instructions: ${slashCmd.extra}`
         : slashCmd.action.prompt;
-      prompt = basePrompt + REPLACE_SUFFIX;
       commentLabel = "/" + slashCmd.action.slash + (slashCmd.extra ? " " + slashCmd.extra : "");
+      if (editorContext?.type === "block") {
+        // Inside a block: replace the whole block with the modified version
+        prompt = basePrompt + REPLACE_SUFFIX;
+        useContextRange = true;
+      } else {
+        // Try to find a block on the line(s) below the comment
+        const nextLine = cursorLine.lineNumber + 1;
+        const belowBlock =
+          nextLine < editor.document.lineCount
+            ? getEnclosingBlock(editor.document, new vscode.Position(nextLine, 0))
+            : null;
+        if (belowBlock) {
+          const expandedRange = new vscode.Range(cursorLine.range.start, belowBlock.range.end);
+          editorContext = { text: belowBlock.text, type: "block", range: expandedRange };
+          prompt = basePrompt + REPLACE_SUFFIX;
+          useContextRange = true;
+        } else {
+          prompt = basePrompt;
+        }
+      }
     } else {
       prompt = kusanagiInput;
       commentLabel = kusanagiInput;
@@ -382,8 +401,8 @@ async function handlePromptCommand(): Promise<void> {
   const isEmptyLine = !hasSelection && cursorLine.isEmptyOrWhitespace;
 
   let range: vscode.Range;
-  if (kusanagiInput) {
-    // Comment IS the placeholder — use its line as the range
+  if (kusanagiInput && !useContextRange) {
+    // Free-text inline prompt — comment line is the placeholder
     range = cursorLine.range;
   } else if (useContextRange && editorContext) {
     // Quick action: replace the context range directly
@@ -414,8 +433,17 @@ async function handlePromptCommand(): Promise<void> {
   try {
     const language = editor.document.languageId;
     const fileContent = editor.document.getText();
-    const contextText = kusanagiInput ? "" : (editorContext?.text ?? "");
-    const contextType = kusanagiInput ? null : (editorContext?.type ?? null);
+    const inlineFreeText = kusanagiInput && !useContextRange;
+    let contextText = inlineFreeText ? "" : (editorContext?.text ?? "");
+    const contextType = inlineFreeText ? null : (editorContext?.type ?? null);
+
+    // Strip the Kusanagi comment line from context so the AI doesn't see or echo it
+    if (kusanagiInput && contextText) {
+      contextText = contextText
+        .split("\n")
+        .filter((line) => !parseKusanagiComment(language, line))
+        .join("\n");
+    }
     const model = vscode.workspace.getConfiguration("kusanagi").get<string>(`${currentProvider.id}.model`, "");
     const result = await currentProvider.run({
       prompt,
