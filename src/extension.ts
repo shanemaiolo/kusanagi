@@ -84,6 +84,13 @@ const QUICK_ACTIONS: QuickAction[] = [
   },
 ];
 
+/**
+ * Parses a slash command from user input and returns the matched action with any extra arguments.
+ *
+ * @param input - The raw user input string to parse.
+ * @returns An object containing the matched {@link QuickAction} and any extra text after the command,
+ *          or `null` if the input does not match a known slash command.
+ */
 function parseSlashCommand(input: string): { action: QuickAction; extra: string } | null {
   const trimmed = input.trim();
   if (!trimmed.startsWith("/")) return null;
@@ -96,6 +103,17 @@ function parseSlashCommand(input: string): { action: QuickAction; extra: string 
   return null;
 }
 
+/**
+ * Finds the nearest enclosing brace-delimited block around the given position.
+ *
+ * Scans backwards from the cursor for an unmatched opening brace, then forward
+ * to find the matching closing brace. The returned range is extended to include
+ * the full declaration (e.g., function signature) preceding the opening brace.
+ *
+ * @param document - The text document to search within.
+ * @param position - The cursor position to find the enclosing block for.
+ * @returns An object containing the block text and its range, or `null` if no enclosing block is found.
+ */
 function getEnclosingBlock(
   document: vscode.TextDocument,
   position: vscode.Position
@@ -176,6 +194,17 @@ function getEnclosingBlock(
   return { text: document.getText(range), range };
 }
 
+/**
+ * Determines the most relevant code context around the cursor in the active editor.
+ *
+ * Returns the selected text if there is an active selection, otherwise attempts to find
+ * the nearest enclosing brace-delimited block, and finally falls back to the current line
+ * if it is non-empty.
+ *
+ * @param editor - The active text editor to extract context from.
+ * @returns An object containing the context text, its type (`"selection"`, `"block"`, or `"line"`),
+ *          and the corresponding range, or `null` if no meaningful context is found.
+ */
 function getEditorContext(
   editor: vscode.TextEditor
 ): { text: string; type: "selection" | "block" | "line"; range: vscode.Range } | null {
@@ -215,6 +244,14 @@ function updateStatusBar(): void {
   }
 }
 
+/**
+ * Handles the main prompt command for the Kusanagi extension.
+ *
+ * Presents the user with quick actions or accepts free-text/slash-command input
+ * based on the current editor context (selection, enclosing block, or cursor line).
+ * Sends the resulting prompt to Claude and applies the response as an inline edit
+ * or insertion in the active editor.
+ */
 async function handlePromptCommand(): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {

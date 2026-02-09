@@ -6,6 +6,11 @@ interface PendingInsertion {
   range: vscode.Range;
 }
 
+/**
+ * Tracks pending text insertions in VS Code documents and adjusts their
+ * target ranges as the document changes, ensuring insertions land at the
+ * correct position even after concurrent edits.
+ */
 export class InsertionTracker implements vscode.Disposable {
   private pending = new Map<string, PendingInsertion>();
   private disposable: vscode.Disposable;
@@ -16,14 +21,32 @@ export class InsertionTracker implements vscode.Disposable {
     });
   }
 
+  /**
+   * Begins tracking a pending insertion.
+   * @param id - Unique identifier for this insertion.
+   * @param uri - The string URI of the target document.
+   * @param range - The document range where the insertion will be applied.
+   */
   track(id: string, uri: string, range: vscode.Range): void {
     this.pending.set(id, { id, uri, range });
   }
 
+  /**
+   * Stops tracking a pending insertion without applying it.
+   * @param id - The identifier of the insertion to remove.
+   */
   remove(id: string): void {
     this.pending.delete(id);
   }
 
+  /**
+   * Applies a pending insertion by replacing its tracked range with the given text.
+   * The insertion is removed from tracking regardless of success or failure.
+   * @param id - The identifier of the pending insertion.
+   * @param text - The replacement text to insert.
+   * @returns `true` if the edit was applied successfully, `false` if the entry
+   *          was not found or the document/editor could not be resolved.
+   */
   async applyResult(
     id: string,
     text: string
@@ -58,6 +81,11 @@ export class InsertionTracker implements vscode.Disposable {
     return success;
   }
 
+  /**
+   * Adjusts all tracked ranges for the affected document whenever
+   * its content changes, keeping pending insertions aligned.
+   * @param e - The text document change event.
+   */
   private adjustForChanges(e: vscode.TextDocumentChangeEvent): void {
     const docUri = e.document.uri.toString();
 
@@ -72,6 +100,14 @@ export class InsertionTracker implements vscode.Disposable {
     }
   }
 
+  /**
+   * Computes a new range by shifting the given range to account for a
+   * single content change. Handles changes that occur before, after, or
+   * overlapping with the range.
+   * @param range - The original range to shift.
+   * @param change - The content change to account for.
+   * @returns The adjusted range.
+   */
   private shiftRange(
     range: vscode.Range,
     change: vscode.TextDocumentContentChangeEvent
@@ -140,10 +176,12 @@ export class InsertionTracker implements vscode.Disposable {
     );
   }
 
+  /** The number of insertions currently being tracked. */
   get activeCount(): number {
     return this.pending.size;
   }
 
+  /** Disposes the document change listener and clears all tracked insertions. */
   dispose(): void {
     this.disposable.dispose();
     this.pending.clear();
