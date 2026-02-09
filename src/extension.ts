@@ -48,6 +48,19 @@ function makeComment(language: string, text: string): string {
   return `${prefix}${text}${suffix}`;
 }
 
+function parseKusanagiComment(language: string, lineText: string): string | null {
+  const [prefix, suffix] = COMMENT_SYNTAX[language] ?? ["// ", ""];
+  const trimmed = lineText.trim();
+  if (!trimmed.startsWith(prefix.trimEnd())) return null;
+  let inner = trimmed.slice(prefix.trimEnd().length).trim();
+  if (suffix) {
+    if (!inner.endsWith(suffix.trimStart())) return null;
+    inner = inner.slice(0, -suffix.trimStart().length).trim();
+  }
+  if (!inner.startsWith("Kusanagi ")) return null;
+  return inner.slice("Kusanagi ".length).trim() || null;
+}
+
 interface QuickAction {
   label: string;
   icon: string;
@@ -274,7 +287,24 @@ async function handlePromptCommand(): Promise<void> {
   let commentLabel: string = "";
   let useContextRange = false;
 
-  if (editorContext) {
+  const cursorLine = editor.document.lineAt(selection.active.line);
+  const kusanagiInput = !hasSelection
+    ? parseKusanagiComment(editor.document.languageId, cursorLine.text)
+    : null;
+
+  if (kusanagiInput) {
+    const slashCmd = parseSlashCommand(kusanagiInput);
+    if (slashCmd) {
+      const basePrompt = slashCmd.extra
+        ? `${slashCmd.action.prompt}\n\nAdditional instructions: ${slashCmd.extra}`
+        : slashCmd.action.prompt;
+      prompt = basePrompt + REPLACE_SUFFIX;
+      commentLabel = "/" + slashCmd.action.slash + (slashCmd.extra ? " " + slashCmd.extra : "");
+    } else {
+      prompt = kusanagiInput;
+      commentLabel = kusanagiInput;
+    }
+  } else if (editorContext) {
     // Show QuickPick with quick actions — also accepts slash commands and free text
     type ActionItem = vscode.QuickPickItem & { action: QuickAction | null };
     const items: ActionItem[] = QUICK_ACTIONS.map((a) => ({
@@ -349,11 +379,13 @@ async function handlePromptCommand(): Promise<void> {
   }
 
   const requestId = `req-${++requestCounter}`;
-  const cursorLine = editor.document.lineAt(selection.active.line);
   const isEmptyLine = !hasSelection && cursorLine.isEmptyOrWhitespace;
 
   let range: vscode.Range;
-  if (useContextRange && editorContext) {
+  if (kusanagiInput) {
+    // Comment IS the placeholder — use its line as the range
+    range = cursorLine.range;
+  } else if (useContextRange && editorContext) {
     // Quick action: replace the context range directly
     range = editorContext.range;
   } else if (hasSelection) {
@@ -382,8 +414,8 @@ async function handlePromptCommand(): Promise<void> {
   try {
     const language = editor.document.languageId;
     const fileContent = editor.document.getText();
-    const contextText = editorContext?.text ?? "";
-    const contextType = editorContext?.type ?? null;
+    const contextText = kusanagiInput ? "" : (editorContext?.text ?? "");
+    const contextType = kusanagiInput ? null : (editorContext?.type ?? null);
     const model = vscode.workspace.getConfiguration("kusanagi").get<string>(`${currentProvider.id}.model`, "");
     const result = await currentProvider.run({
       prompt,

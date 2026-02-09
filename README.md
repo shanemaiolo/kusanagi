@@ -33,6 +33,18 @@ With code selected or your cursor inside a block, press the keybinding to open t
 
 When no code is selected, Kusanagi uses the enclosing block as context. On an empty line, it inserts the result at your cursor.
 
+### Inline prompts
+
+Instead of using the UI, you can write a Kusanagi comment directly in your code:
+
+```
+// Kusanagi /refactor extract validation into a helper
+# Kusanagi write a hello world function
+<!-- Kusanagi /document -->
+```
+
+Place your cursor on the comment line and press the keybinding — Kusanagi skips the QuickPick/InputBox entirely, sends the prompt to the AI, and replaces the comment with the result. This works with all supported comment syntaxes, slash commands, and free-text prompts.
+
 ### Choosing a provider
 
 Open **Settings** and search for `kusanagi.provider`. Pick from the dropdown:
@@ -86,7 +98,7 @@ bun run package    # Compile + package as .vsix
 **Symlink** — Link the project into your extensions directory so VS Code loads it directly:
 
 ```bash
-ln -s "$(pwd)" ~/.vscode/extensions/shanemaiolo.kusanagi-0.3.2
+ln -s "$(pwd)" ~/.vscode/extensions/shanemaiolo.kusanagi-0.4.0
 ```
 
 Restart VS Code (or run **Developer: Reload Window**) to detect the extension. After that, recompile and reload to pick up changes.
@@ -95,7 +107,7 @@ Restart VS Code (or run **Developer: Reload Window**) to detect the extension. A
 
 ```bash
 bun run package
-code --install-extension kusanagi-0.3.2.vsix
+code --install-extension kusanagi-0.4.0.vsix
 ```
 
 You'll need to re-package and re-install to pick up changes.
