@@ -55,7 +55,7 @@ bun run package    # Compile + package as .vsix
 **Symlink** — Link the project into your extensions directory so VS Code loads it directly:
 
 ```bash
-ln -s "$(pwd)" ~/.vscode/extensions/kusanagi
+ln -s "$(pwd)" ~/.vscode/extensions/shanemaiolo.kusanagi-0.2.0
 ```
 
 Restart VS Code (or run **Developer: Reload Window**) to detect the extension. After that, recompile and reload to pick up changes.
