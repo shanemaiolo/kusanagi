@@ -48,7 +48,26 @@ bun run watch      # Rebuild on file changes
 bun run package    # Compile + package as .vsix
 ```
 
-Press **F5** in VS Code to launch the Extension Development Host for testing.
+### Testing & installing
+
+**Extension Development Host (F5)** — Press **F5** in VS Code to launch a sandboxed instance with the extension loaded. Best for active development.
+
+**Symlink** — Link the project into your extensions directory so VS Code loads it directly:
+
+```bash
+ln -s "$(pwd)" ~/.vscode/extensions/kusanagi
+```
+
+Reload VS Code after recompiling to pick up changes.
+
+**Install as .vsix** — Package and install a standalone build:
+
+```bash
+bun run package
+code --install-extension kusanagi-0.2.0.vsix
+```
+
+You'll need to re-package and re-install to pick up changes.
 
 ## License
 
