@@ -9,7 +9,8 @@ function buildPrompt(params: ProviderRunParams): string {
     "Return ONLY valid code. No explanations, no markdown fences, no conversation.\n\n" +
     `Language: ${params.language}\n\n${params.prompt}`;
   if (params.fileContent) {
-    fullPrompt += `\n\nFile:\n\`\`\`${params.language}\n${params.fileContent}\n\`\`\``;
+    fullPrompt += `\n\nIMPORTANT: Your output will REPLACE the focused code. Return ONLY the modified version of the focus code — do not include any surrounding code. If no changes are needed, return the original code exactly as-is. Never return explanations or prose — always return valid code.`;
+    fullPrompt += `\n\nFull file context:\n\`\`\`${params.language}\n${params.fileContent}\n\`\`\``;
   }
   if (params.context && params.contextType) {
     fullPrompt += `\n\nFocus (${params.contextType}):\n\`\`\`${params.language}\n${params.context}\n\`\`\``;
@@ -23,13 +24,19 @@ export const opencodeProvider: Provider = {
 
   run(params: ProviderRunParams): Promise<ProviderResult> {
     return new Promise((resolve, reject) => {
-      const fullPrompt = buildPrompt(params);
+      const prompt = buildPrompt(params);
 
-      const proc = spawn("opencode", ["run"], {
+      const args = ["run"];
+      if (params.model) {
+        args.push("--model", params.model);
+      }
+
+      const proc = spawn("opencode", args, {
         stdio: ["pipe", "pipe", "pipe"],
       });
 
-      proc.stdin.write(fullPrompt);
+      // Pipe the prompt via stdin so it isn't interpreted as a file path.
+      proc.stdin.write(prompt);
       proc.stdin.end();
 
       let stdout = "";
@@ -79,6 +86,12 @@ export const opencodeProvider: Provider = {
           reject(
             new Error(
               `OpenCode exited with code ${code}${stderr ? ": " + stderr.trim() : ""}`
+            )
+          );
+        } else if (!stdout.trim()) {
+          reject(
+            new Error(
+              `OpenCode produced no output${stderr ? ". stderr: " + stderr.trim() : ""}`
             )
           );
         } else {

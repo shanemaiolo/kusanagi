@@ -378,6 +378,7 @@ async function handlePromptCommand(): Promise<void> {
     const fileContent = editor.document.getText();
     const contextText = editorContext?.text ?? "";
     const contextType = editorContext?.type ?? null;
+    const model = vscode.workspace.getConfiguration("kusanagi").get<string>(`${currentProvider.id}.model`, "");
     const result = await currentProvider.run({
       prompt,
       context: contextText,
@@ -385,10 +386,17 @@ async function handlePromptCommand(): Promise<void> {
       signal: ac.signal,
       fileContent,
       contextType,
+      model: model || undefined,
     });
 
     if (result.cancelled) {
       tracker.remove(requestId);
+      return;
+    }
+
+    if (!result.text.trim()) {
+      tracker.remove(requestId);
+      vscode.window.showWarningMessage(`${currentProvider.name} returned an empty response.`);
       return;
     }
 

@@ -25,7 +25,11 @@ export const claudeProvider: Provider = {
     return new Promise((resolve, reject) => {
       const fullPrompt = buildPrompt(params);
 
-      const proc = spawn("claude", ["-p", "--output-format", "text"], {
+      const args = ["-p", "--output-format", "text"];
+      if (params.model) {
+        args.push("--model", params.model);
+      }
+      const proc = spawn("claude", args, {
         stdio: ["pipe", "pipe", "pipe"],
       });
 

@@ -2,7 +2,7 @@
   "name": "kusanagi",
   "displayName": "Kusanagi",
   "description": "Inline AI prompting for VS Code",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "Apache-2.0",
   "publisher": "shanemaiolo",
   "author": {
@@ -47,6 +47,18 @@
             "OpenCode CLI (go install github.com/opencode-ai/opencode@latest)"
           ],
           "description": "The AI CLI backend to use for code generation."
+        },
+        "kusanagi.claude.model": {
+          "type": "string",
+          "default": "",
+          "description": "Model for Claude Code (e.g. \"opus\", \"sonnet\", \"claude-opus-4-6\"). Leave empty for default.",
+          "markdownDescription": "Model for Claude Code. Accepts aliases (`opus`, `sonnet`, `haiku`) or full names (`claude-opus-4-6`). Leave empty for default."
+        },
+        "kusanagi.opencode.model": {
+          "type": "string",
+          "default": "",
+          "description": "Model for OpenCode (e.g. \"opencode/big-pickle\"). Leave empty for default.",
+          "markdownDescription": "Model for OpenCode in `provider/model` format (e.g. `opencode/big-pickle`). Leave empty for default."
         }
       }
     }

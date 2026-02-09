@@ -10,6 +10,7 @@ export interface ProviderRunParams {
   signal?: AbortSignal;
   fileContent?: string;
   contextType?: "selection" | "block" | "line" | null;
+  model?: string;
 }
 
 export interface Provider {

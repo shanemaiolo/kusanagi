@@ -44,6 +44,22 @@ Open **Settings** and search for `kusanagi.provider`. Pick from the dropdown:
 
 The provider can be switched at runtime — no reload required. The status bar reflects the active provider.
 
+### Model selection
+
+Each provider has its own model setting so your choice persists when switching providers.
+
+| Setting                  | Example values                                  |
+|--------------------------|-------------------------------------------------|
+| `kusanagi.claude.model`  | `opus`, `sonnet`, `haiku`, `claude-opus-4-6`    |
+| `kusanagi.opencode.model`| `opencode/big-pickle`                           |
+
+Leave a setting empty to use the provider's default model.
+
+**Finding available model names:**
+
+- **Claude Code** — run `claude model` or pass aliases like `opus`, `sonnet`, `haiku`. Full model IDs (e.g. `claude-opus-4-6`) also work. See the [Claude Code docs](https://docs.anthropic.com/en/docs/claude-code) for details.
+- **OpenCode** — run `opencode models` to see available models. Values use `provider/model` format (e.g. `opencode/big-pickle`).
+
 ### Slash commands
 
 | Command      | Description                                   |
@@ -70,7 +86,7 @@ bun run package    # Compile + package as .vsix
 **Symlink** — Link the project into your extensions directory so VS Code loads it directly:
 
 ```bash
-ln -s "$(pwd)" ~/.vscode/extensions/shanemaiolo.kusanagi-0.3.0
+ln -s "$(pwd)" ~/.vscode/extensions/shanemaiolo.kusanagi-0.3.1
 ```
 
 Restart VS Code (or run **Developer: Reload Window**) to detect the extension. After that, recompile and reload to pick up changes.
@@ -79,7 +95,7 @@ Restart VS Code (or run **Developer: Reload Window**) to detect the extension. A
 
 ```bash
 bun run package
-code --install-extension kusanagi-0.3.0.vsix
+code --install-extension kusanagi-0.3.1.vsix
 ```
 
 You'll need to re-package and re-install to pick up changes.
