@@ -2,8 +2,10 @@ import { spawn } from "child_process";
 
 function stripCodeFences(text: string): string {
   const trimmed = text.trim();
-  // Match the first code fence, ignoring any trailing prose
-  const match = trimmed.match(/^```[^\n]*\n([\s\S]*?)```/);
+  // Match a code fence, requiring the closing ``` on its own line so that
+  // inline backticks within the code (e.g. regex literals) are not mistaken
+  // for the closing fence.
+  const match = trimmed.match(/^```[^\n]*\n([\s\S]*)\n```/);
   if (match) {
     return match[1].trimEnd();
   }
