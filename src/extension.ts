@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { runClaude } from "./claude-runner";
+import { getProvider, type Provider } from "./provider";
 import { InsertionTracker } from "./insertion-tracker";
 
 const COMMENT_SYNTAX: Record<string, [string, string]> = {
@@ -233,13 +233,20 @@ let statusBarItem: vscode.StatusBarItem;
 let activeRequests = 0;
 let requestCounter = 0;
 const abortControllers = new Map<string, AbortController>();
+let currentProvider: Provider;
+
+function loadProvider(): void {
+  const config = vscode.workspace.getConfiguration("kusanagi");
+  const id = config.get<string>("provider", "claude");
+  currentProvider = getProvider(id);
+}
 
 function updateStatusBar(): void {
   if (activeRequests > 0) {
-    statusBarItem.text = `$(sync~spin) Claude: ${activeRequests} working...`;
+    statusBarItem.text = `$(sync~spin) ${currentProvider.name}: ${activeRequests} working...`;
     statusBarItem.show();
   } else {
-    statusBarItem.text = "$(sparkle) Claude: Ready";
+    statusBarItem.text = `$(sparkle) ${currentProvider.name}: Ready`;
     statusBarItem.show();
   }
 }
@@ -348,7 +355,7 @@ async function handlePromptCommand(): Promise<void> {
   } else if (isEmptyLine) {
     // Insert a comment placeholder and track the full line.
     // Use WorkspaceEdit since editor.edit() can fail after showInputBox steals focus.
-    const comment = makeComment(editor.document.languageId, `claude: ${prompt}`);
+    const comment = makeComment(editor.document.languageId, `${currentProvider.id}: ${prompt}`);
     const wsEdit = new vscode.WorkspaceEdit();
     wsEdit.insert(editor.document.uri, selection.active, comment);
     await vscode.workspace.applyEdit(wsEdit);
@@ -371,7 +378,14 @@ async function handlePromptCommand(): Promise<void> {
     const fileContent = editor.document.getText();
     const contextText = editorContext?.text ?? "";
     const contextType = editorContext?.type ?? null;
-    const result = await runClaude(prompt, contextText, language, ac.signal, fileContent, contextType);
+    const result = await currentProvider.run({
+      prompt,
+      context: contextText,
+      language,
+      signal: ac.signal,
+      fileContent,
+      contextType,
+    });
 
     if (result.cancelled) {
       tracker.remove(requestId);
@@ -390,7 +404,7 @@ async function handlePromptCommand(): Promise<void> {
   } catch (err: unknown) {
     tracker.remove(requestId);
     const message = err instanceof Error ? err.message : String(err);
-    vscode.window.showErrorMessage(`Claude error: ${message}`);
+    vscode.window.showErrorMessage(`${currentProvider.name} error: ${message}`);
   } finally {
     abortControllers.delete(requestId);
     activeRequests--;
@@ -402,12 +416,23 @@ export function activate(context: vscode.ExtensionContext): void {
   tracker = new InsertionTracker();
   context.subscriptions.push(tracker);
 
+  loadProvider();
+
   statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
     100
   );
   context.subscriptions.push(statusBarItem);
   updateStatusBar();
+
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration("kusanagi.provider")) {
+        loadProvider();
+        updateStatusBar();
+      }
+    })
+  );
 
   const command = vscode.commands.registerCommand(
     "kusanagi.prompt",

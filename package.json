@@ -34,7 +34,22 @@
         "mac": "cmd+shift+i",
         "when": "editorTextFocus"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Kusanagi",
+      "properties": {
+        "kusanagi.provider": {
+          "type": "string",
+          "default": "claude",
+          "enum": ["claude", "opencode"],
+          "enumDescriptions": [
+            "Claude Code CLI (npm install -g @anthropic-ai/claude-code)",
+            "OpenCode CLI (go install github.com/opencode-ai/opencode@latest)"
+          ],
+          "description": "The AI CLI backend to use for code generation."
+        }
+      }
+    }
   },
   "scripts": {
     "compile": "bun build src/extension.ts --outfile=dist/extension.js --external vscode --format=cjs --target=node",
